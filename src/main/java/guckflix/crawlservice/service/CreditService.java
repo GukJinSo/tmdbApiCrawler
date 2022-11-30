@@ -28,7 +28,7 @@ public class CreditService {
         Credit credit = Credit.builder()
                 .actorId(findActor.getId())
                 .movieId(findMovie.getId())
-                .character(dto.getCharacter())
+                .casting(dto.getCharacter())
                 .castingOrder(dto.getOrder())
                 .build();
         creditRepository.save(credit);

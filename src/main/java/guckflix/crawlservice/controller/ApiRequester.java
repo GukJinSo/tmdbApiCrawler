@@ -56,7 +56,7 @@ public class ApiRequester {
                     movieService.save(dto);
                 }
             }
-            Thread.sleep(100);
+            Thread.sleep(50);
             log.info("{} times", i);
         }
 
@@ -72,19 +72,13 @@ public class ApiRequester {
             List<CreditDto> credits = objectMapper.readValue(response.getBody(), CreditRequestResults.class).getCredits();
 
             sortByOrder(credits);
-            // 출연진이 10명 이상(너무 많은 경우) 10명만 저장하고 싶음
-            if(credits.size() > 10){
-                credits = credits.subList(0, 10);
-            }
+            List<CreditDto> filteredActors = filterByActor(credits);
 
-            // ProfilePath가 공백이거나 없거나, credit order(순서)가 없으면 일반 스탭일 가능성이 높으므로 return list에 넣지 않고 버림
-            for (CreditDto credit : credits) {
-                if(credit.getProfilePath() != "" && credit.getProfilePath() != null && credit.getOrder() != null){
-                    credit.setMovieId(id);
-                    credit.setProfilePath(credit.getProfilePath().replace("/", ""));
-                    actorService.save(credit);
-                    returnDtos.add(credit);
-                }
+            for (CreditDto credit : filteredActors) {
+                credit.setMovieId(id);
+                credit.setProfilePath(credit.getProfilePath().replace("/", ""));
+                actorService.save(credit);
+                returnDtos.add(credit);
             }
         }
 
@@ -109,4 +103,18 @@ public class ApiRequester {
         });
     }
 
+    private List<CreditDto> filterByActor(List<CreditDto> list){
+
+        // 배우인지 필터링
+        List<CreditDto> filteredActors = list.stream().filter((credit) ->
+                credit.getProfilePath() != "" && credit.getProfilePath() != null && credit.getOrder() != null
+        ).collect(Collectors.toList());
+
+        // 15명 이상이면 15명까지만 자름
+        if(filteredActors.size() > 15){
+            filteredActors = filteredActors.subList(0, 15);
+        }
+
+        return filteredActors;
+    }
 }

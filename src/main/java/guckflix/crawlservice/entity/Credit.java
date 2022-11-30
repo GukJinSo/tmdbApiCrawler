@@ -1,6 +1,5 @@
 package guckflix.crawlservice.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -17,7 +16,7 @@ public class Credit {
     private Long id;
 
     @Column(length = 500)
-    private String character;
+    private String casting;
 
     private Integer castingOrder;
 

@@ -34,6 +34,7 @@ public class FileStore {
             writeImage(restTemplate, originalImageURL, movieDto.getBackdropPath(), originalImageDir);
             writeImage(restTemplate, w500ImageURL, movieDto.getPosterPath(), w500ImageDir);
         }
+        log.info("movie image save done");
     }
 
     public void saveActorImages(){
@@ -42,6 +43,7 @@ public class FileStore {
         for (String fileName : fileNames) {
             writeImage(restTemplate, w500ImageURL, fileName, profileDir);
         }
+        log.info("actor image save done");
     }
 
     private void writeImage(RestTemplate restTemplate, String imageURL, String fileName, String dirPath){

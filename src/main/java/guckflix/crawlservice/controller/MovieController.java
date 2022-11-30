@@ -38,10 +38,11 @@ public class MovieController {
 
         // 3. Actor 엔티티로 저장하는 과정
         // 1에서 저장된 ID 조회한 뒤, api 요청으로 작품마다 참여 배우들을 요청함
+        // 다작 배우의 경우 같은 id의 엔티티가 중복될 수 있으므로 merge() 처리
         List<CreditDto> credits = apiRequester.saveActor();
 
         // 4. Credit 엔티티로 저장하는 과정
-        // 3에서 소거한 데이터를 사용하는데, 다작 배우의 경우 같은 id의 엔티티가 중복될 수 있으므로 merge() 처리
+        // 3에서 소거한 데이터를 사용한다.
         apiRequester.saveCredit(credits);
 
         // 5. 배우 이미지 파일 write 하는 과정
