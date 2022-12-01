@@ -4,9 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guckflix.crawlservice.dto.CreditRequestResults;
 import guckflix.crawlservice.dto.MovieRequestResults;
+import guckflix.crawlservice.dto.VideoRequestResults;
+import guckflix.crawlservice.dto.VideoRequestResults.VideoDto;
+import guckflix.crawlservice.repository.VideoJdbcRepository;
 import guckflix.crawlservice.service.ActorService;
 import guckflix.crawlservice.service.CreditService;
 import guckflix.crawlservice.service.MovieService;
+import guckflix.crawlservice.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +19,12 @@ import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static guckflix.crawlservice.controller.TmdbApiConst.*;
 import static guckflix.crawlservice.controller.TmdbApiConst.API_KEY;
-import static guckflix.crawlservice.controller.TmdbApiConst.basicURL;
+import static guckflix.crawlservice.controller.TmdbApiConst.URL_MOVIE;
 import static guckflix.crawlservice.dto.CreditRequestResults.*;
 import static guckflix.crawlservice.dto.MovieRequestResults.*;
 
@@ -31,10 +34,11 @@ import static guckflix.crawlservice.dto.MovieRequestResults.*;
 public class ApiRequester {
 
     private final MovieService movieService;
-
     private final CreditService creditService;
     private final ActorService actorService;
+    private final VideoService videoService;
     private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
 
     /**
      * tmdb api는 요청 시 20개씩 페이징함
@@ -43,11 +47,9 @@ public class ApiRequester {
 
     public void saveMovie() throws JsonProcessingException, ParseException, InterruptedException {
 
-        RestTemplate restTemplate = new RestTemplate();
-
         // 저장
         for (int i = 1; i <= LOOP_NUMBER; i++) {
-            ResponseEntity<String> response = restTemplate.getForEntity(basicURL+"popular?api_key="+API_KEY+"&page="+i, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(URL_MOVIE +"popular?api_key="+API_KEY+"&page="+i, String.class);
             MovieRequestResults movieRequestResults = objectMapper.readValue(response.getBody(), MovieRequestResults.class);
             for (MovieDto dto : movieRequestResults.getMovies()) {
                 if(dto.getBackdropPath() != null && dto.getPosterPath() != null){
@@ -63,16 +65,15 @@ public class ApiRequester {
     }
 
     public List<CreditDto> saveActor() throws JsonProcessingException {
-        RestTemplate restTemplate = new RestTemplate();
         List<Long> ids = movieService.findAllIds();
         List<CreditDto> returnDtos = new ArrayList<>();
 
         for (Long id : ids) {
-            ResponseEntity<String> response = restTemplate.getForEntity(basicURL+id+"/credits?api_key="+API_KEY, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(URL_MOVIE +id+"/credits?api_key="+API_KEY, String.class);
             List<CreditDto> credits = objectMapper.readValue(response.getBody(), CreditRequestResults.class).getCredits();
 
             sortByOrder(credits);
-            List<CreditDto> filteredActors = filterByActor(credits);
+            List<CreditDto> filteredActors = filterOnlyActor(credits);
 
             for (CreditDto credit : filteredActors) {
                 credit.setMovieId(id);
@@ -83,6 +84,20 @@ public class ApiRequester {
         }
 
         return returnDtos;
+    }
+
+    public void saveVideos() throws JsonProcessingException, ParseException, InterruptedException {
+        List<Long> ids = movieService.findAllIds();
+        List<VideoDto> list = new ArrayList<>();
+        for (Long id : ids) {
+            Thread.sleep(20);
+            getVideos(URL_MOVIE + id + "/videos?api_key=" + API_KEY + "&language=ko-KR", list); // 한국 트레일러
+            Thread.sleep(20);
+            getVideos(URL_MOVIE + id + "/videos?api_key=" + API_KEY, list); // 미국 트레일러
+        }
+        videoService.bulkSave(list);
+        log.info("bulk insert done");
+
     }
 
     public void saveCredit(List<CreditDto> credits) throws JsonProcessingException {
@@ -103,7 +118,7 @@ public class ApiRequester {
         });
     }
 
-    private List<CreditDto> filterByActor(List<CreditDto> list){
+    private List<CreditDto> filterOnlyActor(List<CreditDto> list){
 
         // 배우인지 필터링
         List<CreditDto> filteredActors = list.stream().filter((credit) ->
@@ -111,10 +126,30 @@ public class ApiRequester {
         ).collect(Collectors.toList());
 
         // 15명 이상이면 15명까지만 자름
-        if(filteredActors.size() > 15){
-            filteredActors = filteredActors.subList(0, 15);
+        if(filteredActors.size() > MAX_CREDIT_PER_MOVIE){
+            filteredActors = filteredActors.subList(0, MAX_CREDIT_PER_MOVIE);
         }
 
         return filteredActors;
+    }
+
+    private boolean isResultEmpty(ResponseEntity<String> response){
+        return response.getBody().contains("\"results\":[]");
+    }
+
+    private String convertEnum(ResponseEntity<String> response){
+        return response.getBody().replace("Behind the Scenes", "Behind_the_Scenes");
+    }
+
+    private List<VideoDto> getVideos(String url, List<VideoDto> list) throws JsonProcessingException, ParseException {
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        if (!isResultEmpty(response)) {
+            String replaced = convertEnum(response);
+            List<VideoDto> videos = objectMapper.readValue(replaced, VideoRequestResults.class).getVideos();
+            for (VideoDto video : videos) {
+                list.add(video);
+            }
+        }
+        return list;
     }
 }
