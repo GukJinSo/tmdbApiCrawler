@@ -30,19 +30,20 @@ public class VideoJdbcRepository {
 
         jdbcTemplate.batchUpdate(
                 "INSERT INTO video " +
-                        "(video_id, iso_3166, iso_639, video_key, video_name, official, published_at, site, video_type)" +
-                        " values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        "(video_id, movie_id, iso_3166, iso_639, video_key, video_name, official, published_at, site, video_type)" +
+                        " values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 list,
                 count, (ps, argument)-> {
                     ps.setString(1, argument.getId());
-                    ps.setString(2, argument.getIso3166().toString());
-                    ps.setString(3, argument.getIso639().toString());
-                    ps.setString(4, argument.getKey());
-                    ps.setString(5, argument.getName());
-                    ps.setInt(6, argument.getOfficial() == true ? 1 : 0);
-                    ps.setTimestamp(7, Timestamp.valueOf(argument.getPublishedAt()));
-                    ps.setString(8, argument.getSite().toString());
-                    ps.setString(9, argument.getType().toString());
+                    ps.setLong(2, argument.getMovieId());
+                    ps.setString(3, argument.getIso3166().toString());
+                    ps.setString(4, argument.getIso639().toString());
+                    ps.setString(5, argument.getKey());
+                    ps.setString(6, argument.getName());
+                    ps.setInt(7, argument.getOfficial() == true ? 1 : 0);
+                    ps.setTimestamp(8, Timestamp.valueOf(argument.getPublishedAt()));
+                    ps.setString(9, argument.getSite().toString());
+                    ps.setString(10, argument.getType().toString());
                 }
         );
     }

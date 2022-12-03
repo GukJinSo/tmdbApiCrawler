@@ -6,7 +6,6 @@ import guckflix.crawlservice.dto.CreditRequestResults;
 import guckflix.crawlservice.dto.MovieRequestResults;
 import guckflix.crawlservice.dto.VideoRequestResults;
 import guckflix.crawlservice.dto.VideoRequestResults.VideoDto;
-import guckflix.crawlservice.repository.VideoJdbcRepository;
 import guckflix.crawlservice.service.ActorService;
 import guckflix.crawlservice.service.CreditService;
 import guckflix.crawlservice.service.MovieService;
@@ -89,11 +88,14 @@ public class ApiRequester {
     public void saveVideos() throws JsonProcessingException, ParseException, InterruptedException {
         List<Long> ids = movieService.findAllIds();
         List<VideoDto> list = new ArrayList<>();
+        int i = 0;
         for (Long id : ids) {
+            i++;
             Thread.sleep(20);
-            getVideos(URL_MOVIE + id + "/videos?api_key=" + API_KEY + "&language=ko-KR", list); // 한국 트레일러
+            getVideos(URL_MOVIE + id + "/videos?api_key=" + API_KEY + "&language=ko-KR", list, id); // 한국 트레일러
             Thread.sleep(20);
-            getVideos(URL_MOVIE + id + "/videos?api_key=" + API_KEY, list); // 미국 트레일러
+            getVideos(URL_MOVIE + id + "/videos?api_key=" + API_KEY, list, id); // 미국 트레일러
+            log.info("{} times done", i);
         }
         videoService.bulkSave(list);
         log.info("bulk insert done");
@@ -137,16 +139,17 @@ public class ApiRequester {
         return response.getBody().contains("\"results\":[]");
     }
 
-    private String convertEnum(ResponseEntity<String> response){
+    private String strSpaceValidation(ResponseEntity<String> response){
         return response.getBody().replace("Behind the Scenes", "Behind_the_Scenes");
     }
 
-    private List<VideoDto> getVideos(String url, List<VideoDto> list) throws JsonProcessingException, ParseException {
+    private List<VideoDto> getVideos(String url, List<VideoDto> list, Long id) throws JsonProcessingException, ParseException {
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         if (!isResultEmpty(response)) {
-            String replaced = convertEnum(response);
+            String replaced = strSpaceValidation(response);
             List<VideoDto> videos = objectMapper.readValue(replaced, VideoRequestResults.class).getVideos();
             for (VideoDto video : videos) {
+                video.setMovieId(id);
                 list.add(video);
             }
         }

@@ -29,9 +29,9 @@ public class VideoService {
     }
 
     private Video dtoToVideoEntity(VideoDto videoDto) throws ParseException {
-
         Video video = Video.builder()
                 .id(videoDto.getId())
+                .movieId(videoDto.getMovieId())
                 .site(videoDto.getSite())
                 .type(videoDto.getType())
                 .iso639(videoDto.getIso639())

@@ -10,6 +10,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +27,8 @@ public class VideoRequestResults {
     public static class VideoDto{
 
         private String id; // tmdb는 62c041a322e4800fa8f138eb 같은 식으로 관리하기 때문에, 별도의 id를 두고 이것을 uuid로 세팅
+
+        private Long movieId;
 
         private String name;
 

@@ -22,6 +22,9 @@ public class Video {
     @Id @Column(name = "video_id", length = 30)
     private String id;
 
+    @Column(name = "movie_id")
+    private Long movieId;
+
     @Column(name = "video_name")
     private String name;
 
