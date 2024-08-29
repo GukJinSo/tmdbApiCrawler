@@ -25,7 +25,7 @@ public class Movie {
 
     private float popularity;
 
-    private float voteCount;
+    private int voteCount;
 
     private float voteAverage;
 

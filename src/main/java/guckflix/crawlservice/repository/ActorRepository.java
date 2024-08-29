@@ -33,4 +33,16 @@ public class ActorRepository {
     public List<String> findAllImagePath() {
         return em.createQuery("select a.profilePath from Actor a", String.class).getResultList();
     }
+
+    public List<Actor> findActorsPaging(int page, int pageSize){
+        return em.createQuery("select a from Actor a order by a.id asc", Actor.class)
+                .setFirstResult(page*pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
+    }
+
+
+    public int getTotalPage() {
+        return Math.toIntExact((long) em.createQuery("select count(a) from Actor a", Long.class).getSingleResult());
+    }
 }

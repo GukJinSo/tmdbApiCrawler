@@ -44,7 +44,7 @@ public class MovieRequestResults {
         private float voteAverage;
 
         @JsonProperty("vote_count")
-        private float voteCount;
+        private int voteCount;
 
         public MovieDto(String backdropPath, String posterPath) {
             this.backdropPath = backdropPath;

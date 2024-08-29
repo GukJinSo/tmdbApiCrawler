@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static guckflix.crawlservice.dto.CreditRequestResults.*;
@@ -31,7 +32,24 @@ public class ActorService {
         return actorRepository.findById(id);
     }
 
+    public int findLastPage(){
+        return actorRepository.getTotalPage();
+    }
+
     public List<String> findAllImagePath(){
         return actorRepository.findAllImagePath();
+    }
+
+    @Transactional
+    public void updateActors(Actor actor, LocalDate birthDay, LocalDate deathDay, String placeOfBirth, String biography) {
+        System.out.println("actor.getId() = " + actor.getId());
+        actor.updateBirthDay(birthDay);
+        actor.updatedeathDay(deathDay);
+        actor.updatePlaceOfBirth(placeOfBirth);
+        actor.updateBiography(biography);
+    }
+
+    public List<Actor> findActorPaging(int page, int offset) {
+        return actorRepository.findActorsPaging(page, offset);
     }
 }

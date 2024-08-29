@@ -2,10 +2,12 @@ package guckflix.crawlservice.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guckflix.crawlservice.dto.ActorRequest;
 import guckflix.crawlservice.dto.CreditRequestResults;
 import guckflix.crawlservice.dto.MovieRequestResults;
 import guckflix.crawlservice.dto.VideoRequestResults;
 import guckflix.crawlservice.dto.VideoRequestResults.VideoDto;
+import guckflix.crawlservice.entity.Actor;
 import guckflix.crawlservice.service.ActorService;
 import guckflix.crawlservice.service.CreditService;
 import guckflix.crawlservice.service.MovieService;
@@ -154,5 +156,22 @@ public class ApiRequester {
             }
         }
         return list;
+    }
+
+    public void updateActors(){
+
+        int lastPage = actorService.findLastPage();
+
+        for(int i = 0; i < lastPage; i++){
+
+            List<Actor> actors = actorService.findActorPaging(i, 20);
+
+            for (Actor actor : actors) {
+                ActorRequest response = restTemplate.getForEntity(URI_ACTOR+ actor.getId()+"?api_key=" + API_KEY, ActorRequest.class).getBody();
+                actorService.updateActors(actor, response.getBirthDay(), response.getDeathDay(), response.getPlaceOfBirth(), response.getBiography());
+            }
+
+        }
+
     }
 }
