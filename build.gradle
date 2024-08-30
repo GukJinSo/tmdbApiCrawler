@@ -24,7 +24,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	implementation 'mysql:mysql-connector-java'
-	runtimeOnly 'com.h2database:h2:1.4.199'
+	testRuntimeOnly 'com.h2database:h2:1.4.199'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.3'
 }

@@ -8,7 +8,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.*;
 import javax.sql.DataSource;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 
 @Configuration
@@ -30,10 +36,9 @@ public class AppConfig {
     }
 
     @Bean
-    public RestTemplate restTemplate(){
+    public RestTemplate restTemplate() throws NoSuchAlgorithmException, KeyManagementException {
+
         return new RestTemplate();
     }
-
-
 
 }

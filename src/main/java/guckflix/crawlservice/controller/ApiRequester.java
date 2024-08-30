@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
@@ -167,8 +168,19 @@ public class ApiRequester {
             List<Actor> actors = actorService.findActorPaging(i, 20);
 
             for (Actor actor : actors) {
-                ActorRequest response = restTemplate.getForEntity(URI_ACTOR+ actor.getId()+"?api_key=" + API_KEY, ActorRequest.class).getBody();
+                if(actor.getBiography() != null){
+                    System.out.println("스킵");
+                    continue;
+                }
+
+                ActorRequest response;
+                try {
+                    response = restTemplate.getForEntity(URI_ACTOR+ actor.getId()+"?api_key=" + API_KEY, ActorRequest.class).getBody();
+                } catch(HttpClientErrorException e) {
+                    continue;
+                }
                 actorService.updateActors(actor, response.getBirthDay(), response.getDeathDay(), response.getPlaceOfBirth(), response.getBiography());
+                System.out.println("response.getBiography() = " + response.getBiography());
             }
 
         }

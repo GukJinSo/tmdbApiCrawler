@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -46,8 +47,18 @@ public class FileStore {
     }
 
     private void writeImage(String imageURL, String fileName, String dirPath){
+
+        // 이미 존재하면 하지 않음
+        File file = new File(dirPath+fileName);
+        if(file.exists()){
+            System.out.println("이미 존재하는 파일명" + file.getName());
+            return;
+        }
+
+
         byte[] imageBytes = restTemplate.getForObject(imageURL + fileName, byte[].class);
         try {
+            System.out.println("파일 다운로드 중 : " + file.getName());
             Files.write(Paths.get(dirPath + fileName), imageBytes);
         } catch (IOException e) {
             throw new RuntimeException("이미지 저장 중 에러 발생", e);

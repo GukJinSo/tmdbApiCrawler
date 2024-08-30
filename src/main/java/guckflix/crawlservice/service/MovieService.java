@@ -32,8 +32,12 @@ public class MovieService {
     }
 
     private Movie dtoToMovieEntity(MovieDto detail) throws ParseException {
-        java.util.Date utilDate = new SimpleDateFormat("yyyy-MM-dd").parse(detail.getReleaseDate());
-        java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+
+        java.sql.Date sqlDate = null;
+        if(!detail.getReleaseDate().equals("")){
+            java.util.Date utilDate = new SimpleDateFormat("yyyy-MM-dd").parse(detail.getReleaseDate());
+            sqlDate = new java.sql.Date(utilDate.getTime());
+        }
         Movie movie = Movie.builder().backdropPath(detail.getBackdropPath())
                 .genres(
                         detail.getGenres().stream().collect(Collectors.joining(","))
